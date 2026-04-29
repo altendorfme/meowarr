@@ -1,0 +1,210 @@
+<%- include('partials/header', { title: t('images.title') + ' - ' + t('app.name'), pageId: 'images' }) %>
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h4 class="mb-0"><i class="bi bi-images"></i> <%= t('images.title') %></h4>
+    <div class="d-flex flex-wrap gap-2">
+      <button type="button" class="btn btn-outline-warning" id="test-btn"
+        data-job-action data-job-client-trigger
+        title="<%= t('images.testBtnHint') %>">
+        <i class="bi bi-shield-check"></i> <%= t('images.testBtn') %>
+      </button>
+      <a href="/images/new" class="btn btn-primary"><i class="bi bi-plus-lg"></i> <%= t('images.newImage') %></a>
+    </div>
+  </div>
+
+  <div class="alert alert-info py-2">
+    <i class="bi bi-info-circle"></i> <%= t('images.info') %>
+  </div>
+
+  <div class="card bg-body-tertiary mb-4">
+    <div class="card-header text-uppercase text-secondary">
+      <i class="bi bi-pencil-square"></i> <%= t('images.overrides') %>
+      <span class="badge bg-secondary ms-2"><%= overrides.length %></span>
+    </div>
+    <div class="card-body">
+      <% if (overrides.length === 0) { %>
+        <div class="text-secondary mb-0"><%= t('images.noOverrides') %></div>
+      <% } else { %>
+        <div class="row g-3">
+          <% overrides.forEach(o => { %>
+            <div class="col-12 col-md-6 col-lg-4">
+              <div
+                class="border rounded p-2 h-100 d-flex gap-2 <%= o.enabled ? '' : 'opacity-50' %> <%= o.target_broken ? 'border-danger' : '' %>">
+                <div class="d-flex flex-column gap-1 align-items-center" style="min-width:80px">
+                  <% if (o.source_url) { %>
+                    <img src="<%= o.source_url %>" alt="<%= t('images.origin') %>"
+                      class="border rounded bg-dark p-1 js-test-img app-thumb"
+                      data-url="<%= o.source_url %>" loading="lazy"
+                      referrerpolicy="no-referrer" data-onerror-fade>
+                    <div class="text-secondary"><%= t('images.origin') %></div>
+                  <% } else { %>
+                    <div class="border rounded bg-dark text-secondary app-thumb-empty"><%= t('images.new') %></div>
+                  <% } %>
+                  <i class="bi bi-arrow-down text-info"></i>
+                  <img src="<%= o.target_url %>" alt="<%= t('images.target') %>"
+                    class="border border-info rounded bg-dark p-1 js-test-img app-thumb"
+                    data-url="<%= o.target_url %>" loading="lazy"
+                    referrerpolicy="no-referrer" data-onerror-fade>
+                  <div class="text-info"><%= t('images.target') %></div>
+                </div>
+                <div class="flex-grow-1 d-flex flex-column">
+                  <div class="fw-semibold text-truncate" title="<%= o.name || t('images.unnamed') %>">
+                    <%= o.name || t('images.unnamed') %>
+                  </div>
+                  <div class="text-secondary">
+                    <i class="bi bi-funnel"></i>
+                    <%= o.rule_count %> <%= o.rule_count === 1 ? t('images.filters') : t('images.filtersPl') %>
+                    <% if (!o.enabled) { %><span class="badge bg-secondary ms-1"><%= t('images.deactivated') %></span><% } %>
+                    <% if (o.target_broken) { %>
+                      <span class="badge bg-danger ms-1" title="<%= t('images.targetBrokenTitle') %>">
+                        <i class="bi bi-exclamation-triangle"></i> <%= t('images.targetBroken') %>
+                      </span>
+                    <% } %>
+                  </div>
+                  <div class="text-break text-secondary mt-1"><%= o.target_url %></div>
+                  <div class="mt-auto d-flex gap-1 pt-2">
+                    <a href="/images/<%= o.id %>/edit" class="btn btn-outline-primary flex-grow-1">
+                      <i class="bi bi-pencil"></i> <%= t('common.edit') %>
+                    </a>
+                    <form method="post" action="/images/<%= o.id %>/toggle" class="d-inline">
+                      <button class="btn btn-outline-warning" title="<%= t('sources.toggle') %>">
+                        <i class="bi bi-toggle2-on"></i>
+                      </button>
+                    </form>
+                    <form method="post" action="/images/<%= o.id %>/delete" class="d-inline"
+                      data-confirm="<%= t('images.confirmDeleteOverride') %>">
+                      <button class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="card bg-body-tertiary">
+    <div class="card-header">
+      <div class="row g-2 align-items-center">
+        <div class="col-12">
+          <span class="text-uppercase text-secondary">
+            <i class="bi bi-collection"></i> <%= t('images.extracted') %>
+          </span>
+          <span class="badge bg-secondary ms-2"><%= total.toLocaleString(lang) %></span>
+          <% if (brokenTotal > 0) { %>
+            <span class="badge bg-danger-subtle text-danger-emphasis ms-1"
+              title="<%= t('images.brokenTotalTitle') %>">
+              <i class="bi bi-exclamation-triangle"></i>
+              <%= brokenTotal.toLocaleString(lang) %> <%= brokenTotal === 1 ? t('images.brokenTotal') : t('images.brokenTotalPl') %>
+            </span>
+          <% } %>
+        </div>
+        <div class="col-12">
+          <form method="get" action="/images" class="row g-2 align-items-center" data-no-loading="1">
+            <div class="col-12 col-md-auto">
+              <div class="btn-group" role="group">
+                <input type="radio" class="btn-check" name="filter" value="all" id="f-all"
+                  <%= filter !== 'broken' ? 'checked' : '' %> data-submit-on-change>
+                <label class="btn btn-outline-secondary" for="f-all"><%= t('images.filterAll') %></label>
+                <input type="radio" class="btn-check" name="filter" value="broken" id="f-broken"
+                  <%= filter === 'broken' ? 'checked' : '' %> data-submit-on-change>
+                <label class="btn btn-outline-danger" for="f-broken">
+                  <i class="bi bi-exclamation-triangle"></i> <%= t('images.filterBroken') %>
+                </label>
+              </div>
+            </div>
+            <div class="col-12 col-md">
+              <input type="text" class="form-control" name="q" value="<%= q %>"
+                placeholder="<%= t('images.searchPlaceholder') %>">
+            </div>
+            <div class="col-auto">
+              <button class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <% if (extracted.length === 0) { %>
+        <div class="text-secondary mb-0">
+          <%= filter === 'broken' ? t('images.noneBroken') : t('images.noneFound') %>
+        </div>
+      <% } else { %>
+        <div class="row g-2">
+          <% extracted.forEach(item => {
+            const isBroken = brokenSet.has(item.tvg_logo);
+            const isChecked = checkedSet.has(item.tvg_logo);
+          %>
+            <div class="col-6 col-md-3 col-lg-2 js-image-card" data-url="<%= item.tvg_logo %>">
+              <div
+                class="border rounded p-2 h-100 d-flex flex-column align-items-center text-center <%= overriddenSet.has(item.tvg_logo) ? 'border-info' : '' %> <%= isBroken ? 'border-danger' : '' %>">
+                <img src="<%= item.tvg_logo %>" alt="logo"
+                  class="bg-dark rounded p-1 mb-2 js-test-img app-thumb-lg"
+                  data-url="<%= item.tvg_logo %>" loading="lazy" referrerpolicy="no-referrer"
+                  style="<%= isBroken ? 'opacity:.3' : '' %>" data-onerror-fade>
+                <div class="text-truncate w-100" title="<%= item.sample_name || '' %>">
+                  <%= item.sample_name || t('common.none_dash') %>
+                </div>
+                <div class="text-secondary">
+                  <%= item.uses.toLocaleString(lang) %> <%= item.uses === 1 ? t('images.use') : t('images.usePl') %>
+                </div>
+                <div class="d-flex flex-wrap gap-1 justify-content-center mt-1">
+                  <% if (overriddenSet.has(item.tvg_logo)) { %>
+                    <span class="badge bg-info-subtle text-info-emphasis">
+                      <i class="bi bi-check2"></i> <%= t('images.swapped') %>
+                    </span>
+                  <% } %>
+                  <span class="js-status-badge">
+                    <% if (isBroken) { %>
+                      <span class="badge bg-danger">
+                        <i class="bi bi-exclamation-triangle"></i> <%= t('images.broken') %>
+                      </span>
+                    <% } else if (isChecked) { %>
+                      <span class="badge bg-success-subtle text-success-emphasis">
+                        <i class="bi bi-check2-circle"></i> <%= t('images.ok') %>
+                      </span>
+                    <% } %>
+                  </span>
+                </div>
+                <a href="/images/new?source_url=<%= encodeURIComponent(item.tvg_logo) %>"
+                  class="btn btn-outline-primary w-100 mt-2">
+                  <i class="bi bi-arrow-left-right"></i> <%= t('images.swap') %>
+                </a>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+
+        <% if (totalPages > 1) { %>
+          <nav class="mt-3">
+            <ul class="pagination justify-content-center mb-0">
+              <% for (let p = 1; p <= totalPages; p++) { %>
+                <% if (p === 1 || p === totalPages || Math.abs(p - page) <= 2) { %>
+                  <li class="page-item <%= p === page ? 'active' : '' %>">
+                    <a class="page-link"
+                      href="/images?page=<%= p %><%= q ? '&q=' + encodeURIComponent(q) : '' %><%= filter === 'broken' ? '&filter=broken' : '' %>">
+                      <%= p %>
+                    </a>
+                  </li>
+                <% } else if (Math.abs(p - page) === 3) { %>
+                  <li class="page-item disabled"><span class="page-link">…</span></li>
+                <% } %>
+              <% } %>
+            </ul>
+          </nav>
+        <% } %>
+      <% } %>
+    </div>
+  </div>
+
+  <template id="i18n-data"><%= JSON.stringify({
+    broken: t('images.broken'),
+    ok: t('images.ok'),
+    testJobLabel: t('jobs.testImages'),
+    testFailLoad: t('images.testFailLoad'),
+    testNone: t('images.testNone'),
+    testDone: t('images.testDone'),
+  }) %></template>
+
+  <%- include('partials/footer') %>

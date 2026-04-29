@@ -1,0 +1,132 @@
+<%- include('partials/header', { title: (image.id ? t('imageEdit.titleEdit') : t('imageEdit.titleNew')) + ' - ' + t('app.name'), pageId: 'image-edit' }) %>
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h4 class="mb-0"><i class="bi bi-images"></i>
+      <%= image.id ? t('imageEdit.titleEdit') : t('imageEdit.titleNew') %>
+    </h4>
+    <a href="/images" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> <%= t('common.back') %></a>
+  </div>
+
+  <% if (saved) { %>
+    <div class="alert alert-success py-2"><i class="bi bi-check-circle"></i> <%= t('imageEdit.saved') %></div>
+  <% } %>
+  <% if (error) { %>
+    <div class="alert alert-danger py-2"><i class="bi bi-exclamation-triangle"></i> <%= error %></div>
+  <% } %>
+
+  <form method="post" action="<%= image.id ? `/images/${image.id}` : '/images' %>" id="image-form">
+    <input type="hidden" name="rules_json" id="rules_json">
+
+    <div class="card bg-body-tertiary mb-3">
+      <div class="card-body row g-3">
+        <div class="col-12 col-md-4">
+          <label class="form-label"><%= t('imageEdit.nameOptional') %></label>
+          <input name="name" class="form-control" value="<%= image.name || '' %>"
+            placeholder="<%= t('imageEdit.namePlaceholder') %>">
+        </div>
+        <div class="col-12 col-md-4 d-flex align-items-end">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="enabled" id="enabled" value="1"
+              <%= image.enabled ? 'checked' : '' %>>
+            <label class="form-check-label" for="enabled"><%= t('common.enabled') %></label>
+          </div>
+        </div>
+        <div class="col-12">
+          <hr class="my-0">
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label class="form-label">
+            <%= t('imageEdit.sourceUrl') %>
+            <span class="text-secondary"><%= t('imageEdit.sourceUrlHint') %></span>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-dark p-1">
+              <img id="preview-source" src="<%= image.source_url || '' %>" alt=""
+                class="app-thumb-sm"
+                style="<%= image.source_url ? '' : 'display:none' %>"
+                referrerpolicy="no-referrer" data-onerror-fade>
+              <span id="preview-source-empty" class="text-secondary px-2"
+                style="<%= image.source_url ? 'display:none' : '' %>"><%= t('imageEdit.noPreview') %></span>
+            </span>
+            <input name="source_url" id="source_url" class="form-control" value="<%= image.source_url || '' %>"
+              placeholder="<%= t('imageEdit.sourceUrlPlaceholder') %>">
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label class="form-label">
+            <%= t('imageEdit.targetUrl') %> <span class="text-danger">*</span>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text bg-dark p-1">
+              <img id="preview-target" src="<%= image.target_url || '' %>" alt=""
+                class="app-thumb-sm"
+                style="<%= image.target_url ? '' : 'display:none' %>"
+                referrerpolicy="no-referrer" data-onerror-fade>
+              <span id="preview-target-empty" class="text-secondary px-2"
+                style="<%= image.target_url ? 'display:none' : '' %>"><%= t('imageEdit.noPreview') %></span>
+            </span>
+            <input name="target_url" id="target_url" class="form-control" value="<%= image.target_url || '' %>"
+              placeholder="<%= t('imageEdit.targetUrlPlaceholder') %>" required>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card bg-body-tertiary mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <i class="bi bi-funnel"></i>
+          <span class="text-uppercase text-secondary"><%= t('imageEdit.filters') %></span>
+          <span class="badge bg-info-subtle text-info-emphasis ms-2">
+            <i class="bi bi-info-circle"></i> <%= t('imageEdit.filtersInfo') %>
+          </span>
+          <div class="text-secondary mt-1"><%= t('imageEdit.filtersHint') %></div>
+        </div>
+        <button type="button" class="btn btn-primary" id="add-rule">
+          <i class="bi bi-plus-lg"></i> <%= t('imageEdit.addFilter') %>
+        </button>
+      </div>
+      <div class="card-body" id="rules-container">
+        <div class="text-secondary" id="empty-hint"><%= t('imageEdit.noFiltersHint') %></div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 sticky-bottom py-3 app-sticky-actions">
+      <a href="/images" class="btn btn-outline-secondary"><%= t('common.cancel') %></a>
+      <button type="submit" class="btn btn-success" id="save-btn">
+        <span class="btn-label"><i class="bi bi-save"></i> <%= t('common.save') %></span>
+        <span class="btn-loading d-none">
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          <%= t('common.saving') %>
+        </span>
+      </button>
+    </div>
+  </form>
+
+  <template id="tpl-rule">
+    <div class="row g-2 mb-2 align-items-center" data-rule>
+      <div class="col-12 col-md-3">
+        <select class="form-select" data-field="field">
+          <% FIELDS.forEach(f => { %><option value="<%= f %>"><%= f %></option><% }) %>
+        </select>
+      </div>
+      <div class="col-12 col-md-2">
+        <select class="form-select" data-field="operator">
+          <% OPERATORS.forEach(o => { %><option value="<%= o %>"><%= o %></option><% }) %>
+        </select>
+      </div>
+      <div class="col-10 col-md-6">
+        <input class="form-control" data-field="value"
+          placeholder="<%= t('imageEdit.valuePlaceholder') %>" title="<%= t('common.info') %>">
+      </div>
+      <div class="col-2 col-md-1 text-end">
+        <button type="button" class="btn btn-outline-danger" data-action="delete-rule"
+          title="<%= t('common.delete') %>"><i class="bi bi-x"></i></button>
+      </div>
+    </div>
+  </template>
+
+  <template id="initial-rules"><%= JSON.stringify(rules.map(r => ({ field: r.field, operator: r.operator, value: r.value }))) %></template>
+
+  <%- include('partials/footer') %>

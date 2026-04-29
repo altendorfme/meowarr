@@ -1,0 +1,5 @@
+@use "bootstrap/scss/bootstrap";
+@use "bootstrap-icons/font/bootstrap-icons" with (
+  $bootstrap-icons-font-dir: "fonts"
+);
+@use "theme";

@@ -1,0 +1,85 @@
+<%- include('partials/header', { title: t('sourceEdit.title') + ' - ' + t('app.name') }) %>
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h4 class="mb-0"><i class="bi bi-hdd-network"></i> <%= t('sourceEdit.title') %></h4>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="/sources/<%= source.id %>/channels" class="btn btn-outline-info">
+        <i class="bi bi-list-ul"></i> <%= t('sources.viewChannels') %>
+      </a>
+      <a href="/sources" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> <%= t('common.back') %></a>
+    </div>
+  </div>
+
+  <% if (saved) { %>
+    <div class="alert alert-success py-2"><i class="bi bi-check-circle"></i> <%= t('sourceEdit.saved') %></div>
+  <% } %>
+  <% if (error) { %>
+    <div class="alert alert-danger py-2"><i class="bi bi-exclamation-triangle"></i> <%= error %></div>
+  <% } %>
+
+  <div class="alert alert-info py-2">
+    <i class="bi bi-info-circle"></i> <%= t('sourceEdit.info') %>
+  </div>
+
+  <form method="post" action="/sources/<%= source.id %>">
+    <div class="card bg-body-tertiary mb-3">
+      <div class="card-body row g-3">
+        <div class="col-12 col-md-5">
+          <label class="form-label"><%= t('common.name') %> <span class="text-danger">*</span></label>
+          <input name="name" class="form-control" value="<%= source.name || '' %>" required>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <label class="form-label"><%= t('common.type') %></label>
+          <select name="kind" class="form-select">
+            <option value="url" <%= source.kind === 'url' ? 'selected' : '' %>><%= t('sources.kindUrl') %></option>
+            <option value="git" <%= source.kind === 'git' ? 'selected' : '' %>><%= t('sources.kindGit') %></option>
+          </select>
+        </div>
+
+        <div class="col-12 col-md-3 d-flex align-items-start pt-md-4">
+          <div class="form-check mt-md-2">
+            <input class="form-check-input" type="checkbox" name="enabled" id="enabled" value="1"
+              <%= source.enabled ? 'checked' : '' %>>
+            <label class="form-check-label" for="enabled"><%= t('common.enabledM') %></label>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label"><%= t('sources.location') %> <span class="text-danger">*</span></label>
+          <input name="location" class="form-control" value="<%= source.location || '' %>" required>
+          <div class="form-text"><%= t('sourceEdit.locationHint') %></div>
+        </div>
+
+        <% if (source.last_sync_at || source.last_status || source.last_error) { %>
+          <div class="col-12">
+            <div class="row g-2 small text-secondary">
+              <% if (source.last_sync_at) { %>
+                <div class="col-12 col-md-4">
+                  <strong><%= t('common.lastSync') %>:</strong> <%= source.last_sync_at %>
+                </div>
+              <% } %>
+              <% if (source.last_status) { %>
+                <div class="col-12 col-md-4">
+                  <strong><%= t('common.status') %>:</strong> <%= source.last_status %>
+                </div>
+              <% } %>
+              <% if (source.last_error) { %>
+                <div class="col-12">
+                  <span class="text-danger"><strong><%= t('common.error') %>:</strong> <%= source.last_error %></span>
+                </div>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 sticky-bottom py-3 app-sticky-actions">
+      <a href="/sources" class="btn btn-outline-secondary"><%= t('common.cancel') %></a>
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-save"></i> <%= t('common.save') %>
+      </button>
+    </div>
+  </form>
+
+<%- include('partials/footer') %>

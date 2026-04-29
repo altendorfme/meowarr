@@ -1,0 +1,117 @@
+<%- include('partials/header', { title: t('epgs.title') + ' - ' + t('app.name'), pageId: 'epgs' }) %>
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h4 class="mb-0"><i class="bi bi-calendar3"></i> <%= t('epgs.title') %></h4>
+    <form method="post" action="/epgs/sync-all" data-no-loading="1" data-job>
+      <button class="btn btn-outline-primary" data-job-action>
+        <i class="bi bi-arrow-clockwise"></i> <%= t('common.syncAllM') %>
+      </button>
+    </form>
+  </div>
+
+  <div class="alert alert-info py-2">
+    <i class="bi bi-info-circle"></i> <%= t('epgs.info') %>
+  </div>
+
+  <div class="card bg-body-tertiary mb-4">
+    <div class="card-header text-uppercase text-secondary"><%= t('epgs.newEpg') %></div>
+    <form method="post" action="/epgs" class="card-body row g-2">
+      <div class="col-12 col-md-3">
+        <label class="form-label"><%= t('common.name') %></label>
+        <input name="name" class="form-control" required>
+      </div>
+      <div class="col-12 col-md-2">
+        <label class="form-label"><%= t('common.slug') %></label>
+        <input name="slug" class="form-control" placeholder="auto">
+      </div>
+      <div class="col-12 col-md-5">
+        <label class="form-label"><%= t('epgs.urlHint') %></label>
+        <input name="url" class="form-control" placeholder="<%= t('epgs.urlPlaceholder') %>" required>
+      </div>
+      <div class="col-6 col-md-1 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="enabled" id="en" checked>
+          <label class="form-check-label" for="en"><%= t('common.enabledM') %></label>
+        </div>
+      </div>
+      <div class="col-6 col-md-1 d-flex align-items-end">
+        <button class="btn btn-primary w-100"><i class="bi bi-plus-lg"></i></button>
+      </div>
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-dark table-striped align-middle">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th><%= t('common.name') %></th>
+          <th><%= t('common.slug') %></th>
+          <th><%= t('epgs.publicUrl') %></th>
+          <th><%= t('epgs.epgChannels') %></th>
+          <th><%= t('common.lastSync') %></th>
+          <th><%= t('common.status') %></th>
+          <th><%= t('common.enabledM') %></th>
+          <th class="text-end"><%= t('common.actions') %></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% epgs.forEach(e => { %>
+          <tr>
+            <td class="text-secondary"><%= e.id %></td>
+            <td><%= e.name %></td>
+            <td><code><%= e.slug %></code></td>
+            <td><a href="/epg/<%= e.slug %>.xml" target="_blank">/epg/<%= e.slug %>.xml</a></td>
+            <td class="text-secondary"><%= (e.index_count || 0).toLocaleString(lang) %></td>
+            <td class="text-secondary text-nowrap"><%= e.last_sync_at || t('common.none_dash') %></td>
+            <td>
+              <%- include('partials/status_badge', { status: e.last_status }) %>
+              <% if (e.last_error) { %>
+                <br><span class="text-danger"><%= e.last_error %></span>
+              <% } %>
+            </td>
+            <td>
+              <% if (e.enabled) { %>
+                <span class="badge bg-success"><%= t('common.yes') %></span>
+              <% } else { %>
+                <span class="badge bg-secondary"><%= t('common.no') %></span>
+              <% } %>
+            </td>
+            <td class="text-end">
+              <div class="d-flex gap-2 align-items-center justify-content-end">
+              <a href="/epgs/<%= e.id %>/edit" class="btn btn-outline-secondary"
+                title="<%= t('common.edit') %>">
+                <i class="bi bi-pencil"></i>
+              </a>
+              <a href="/epgs/<%= e.id %>/priorities" class="btn btn-outline-info"
+                title="<%= t('epgs.matchPriorities') %>">
+                <i class="bi bi-funnel"></i>
+              </a>
+              <form method="post" action="/epgs/<%= e.id %>/sync" class="d-inline" data-no-loading="1" data-job>
+                <button class="btn btn-outline-primary" data-job-action title="<%= t('common.sync') %>">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+              </form>
+              <form method="post" action="/epgs/<%= e.id %>/toggle" class="d-inline">
+                <button class="btn btn-outline-warning" title="<%= t('sources.toggle') %>">
+                  <i class="bi bi-toggle2-on"></i>
+                </button>
+              </form>
+              <form method="post" action="/epgs/<%= e.id %>/delete" class="d-inline"
+                data-confirm="<%= t('epgs.confirmDelete') %>">
+                <button class="btn btn-outline-danger" title="<%= t('common.delete') %>">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+        <% if (epgs.length === 0) { %>
+          <tr>
+            <td colspan="9" class="text-secondary text-center py-3"><%= t('epgs.none') %></td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+  <%- include('partials/footer') %>

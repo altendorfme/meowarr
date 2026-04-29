@@ -1,0 +1,9 @@
+<%
+  const _statusRaw = (typeof status !== 'undefined' && status) ? String(status) : '';
+  const _statusKey = _statusRaw ? _statusRaw.split(':')[0].trim().toLowerCase() : '';
+  const _statusBadge = !_statusKey ? 'bg-secondary'
+    : _statusKey === 'ok' ? 'bg-success'
+    : _statusKey === 'erro' || _statusKey === 'error' || _statusKey.startsWith('erro') ? 'bg-danger'
+    : 'bg-warning text-dark';
+  const _statusLabel = _statusKey ? _statusKey : t('common.none_dash');
+%><span class="badge <%= _statusBadge %>"><%= _statusLabel %></span>

@@ -1,0 +1,60 @@
+<%- include('partials/header', { title: t('epgEdit.title') + ' - ' + t('app.name') }) %>
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h4 class="mb-0"><i class="bi bi-calendar3"></i> <%= t('epgEdit.title') %></h4>
+    <a href="/epgs" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> <%= t('common.back') %></a>
+  </div>
+
+  <% if (saved) { %>
+    <div class="alert alert-success py-2"><i class="bi bi-check-circle"></i> <%= t('epgEdit.saved') %></div>
+  <% } %>
+  <% if (error) { %>
+    <div class="alert alert-danger py-2"><i class="bi bi-exclamation-triangle"></i> <%= error %></div>
+  <% } %>
+
+  <div class="alert alert-info py-2">
+    <i class="bi bi-info-circle"></i> <%= t('epgEdit.info') %>
+  </div>
+
+  <form method="post" action="/epgs/<%= epg.id %>">
+    <div class="card bg-body-tertiary mb-3">
+      <div class="card-body row g-3">
+        <div class="col-12 col-md-5">
+          <label class="form-label"><%= t('common.name') %> <span class="text-danger">*</span></label>
+          <input name="name" class="form-control" value="<%= epg.name || '' %>" required>
+        </div>
+
+        <div class="col-12 col-md-4">
+          <label class="form-label"><%= t('common.slug') %></label>
+          <input name="slug" class="form-control" value="<%= epg.slug || '' %>"
+            placeholder="<%= t('epgEdit.slugPlaceholder') %>">
+          <div class="form-text">
+            <%= t('epgEdit.publicUrlHint') %>
+            <code>/epg/<%= epg.slug %>.xml</code>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-3 d-flex align-items-start pt-md-4">
+          <div class="form-check mt-md-2">
+            <input class="form-check-input" type="checkbox" name="enabled" id="enabled" value="1"
+              <%= epg.enabled ? 'checked' : '' %>>
+            <label class="form-check-label" for="enabled"><%= t('common.enabledM') %></label>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label"><%= t('epgs.urlHint') %> <span class="text-danger">*</span></label>
+          <input name="url" class="form-control" value="<%= epg.url || '' %>"
+            placeholder="<%= t('epgs.urlPlaceholder') %>" required>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 sticky-bottom py-3 app-sticky-actions">
+      <a href="/epgs" class="btn btn-outline-secondary"><%= t('common.cancel') %></a>
+      <button type="submit" class="btn btn-success">
+        <i class="bi bi-save"></i> <%= t('common.save') %>
+      </button>
+    </div>
+  </form>
+
+  <%- include('partials/footer') %>

@@ -1,0 +1,296 @@
+<%- include('partials/header', { title: t('listEdit.title') + ' - ' + list.name + ' - ' + t('app.name'), pageId: 'list-edit' }) %>
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h4 class="mb-0"><i class="bi bi-funnel"></i> <%= t('listEdit.title') %></h4>
+    <div class="d-flex flex-wrap gap-2">
+      <a href="/lists/<%= list.id %>/channels" class="btn btn-outline-info"><i class="bi bi-list-ul"></i>
+        <%= t('listEdit.viewChannels') %></a>
+      <a href="/lists/<%= list.slug %>/m3u8" target="_blank" class="btn btn-outline-info"><i
+          class="bi bi-link-45deg"></i> m3u8</a>
+      <a href="/lists/<%= list.slug %>/hdhr" target="_blank" class="btn btn-outline-info"
+        title="HDHR"><i class="bi bi-broadcast-pin"></i> HDHR</a>
+      <a href="/lists" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> <%= t('common.back') %></a>
+    </div>
+  </div>
+
+  <div class="alert alert-info py-2">
+    <i class="bi bi-info-circle"></i> <%= t('listEdit.info') %>
+  </div>
+
+  <% if (saved) { %>
+    <div class="alert alert-success py-2"><i class="bi bi-check-circle"></i>
+      <%= t('common.savedNoRegen') %>
+    </div>
+  <% } %>
+  <% if (error) { %>
+    <div class="alert alert-danger py-2"><i class="bi bi-exclamation-triangle"></i> <%= error %></div>
+  <% } %>
+
+  <form method="post" action="/lists/<%= list.id %>" id="list-form">
+    <input type="hidden" name="groups_json" id="groups_json">
+    <input type="hidden" name="replacements_json" id="replacements_json">
+
+    <div class="card bg-body-tertiary mb-3">
+      <div class="card-body row g-2">
+        <div class="col-12 col-md-4">
+          <label class="form-label"><%= t('common.name') %></label>
+          <input name="name" class="form-control" value="<%= list.name %>" required>
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label"><%= t('common.slug') %> (URL)</label>
+          <input name="slug" class="form-control" value="<%= list.slug %>">
+        </div>
+        <div class="col-12 col-md-5">
+          <label class="form-label"><%= t('common.description') %></label>
+          <input name="description" class="form-control" value="<%= list.description || '' %>">
+        </div>
+
+        <div class="col-12 col-md-4">
+          <label class="form-label">
+            <%= t('listEdit.epgAssociated') %>
+            <span class="text-secondary"><%= t('listEdit.epgHint') %></span>
+          </label>
+          <select name="epg_id" class="form-select">
+            <option value=""><%= t('common.none') %></option>
+            <% epgs.forEach(e => { %>
+              <option value="<%= e.id %>" <%= list.epg_id === e.id ? 'selected' : '' %>>
+                <%= e.name %> (<%= e.slug %>)
+              </option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label"><%= t('listEdit.normalization') %></label>
+          <select name="norm_case" class="form-select">
+            <% CASE_MODES.forEach(m => { %>
+              <option value="<%= m %>" <%= (list.norm_case || 'none') === m ? 'selected' : '' %>>
+                <%= m === 'none' ? t('listEdit.caseNone')
+                  : m === 'upper' ? t('listEdit.caseUpper')
+                  : m === 'lower' ? t('listEdit.caseLower')
+                  : t('listEdit.caseCapital') %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+        <div class="col-12 col-md-4 d-flex align-items-end">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="norm_strip_specials" id="strip" value="1"
+              <%= list.norm_strip_specials ? 'checked' : '' %>>
+            <label class="form-check-label" for="strip">
+              <%= t('listEdit.stripSpecials') %> <code>, - ( ) [ ]</code>
+            </label>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label d-flex align-items-center gap-2 flex-wrap">
+            <i class="bi bi-shield-lock"></i> <%= t('listEdit.basicAuth') %>
+            <span class="text-secondary small"><%= t('listEdit.basicAuthHint') %></span>
+          </label>
+          <div class="row g-2">
+            <div class="col-12 col-md-4">
+              <input name="basic_auth_user" class="form-control" value="<%= list.basic_auth_user || '' %>"
+                placeholder="<%= t('listEdit.basicAuthUser') %>" autocomplete="off">
+            </div>
+            <div class="col-12 col-md-4">
+              <input name="basic_auth_password" type="text" class="form-control"
+                value="<%= list.basic_auth_password || '' %>" placeholder="<%= t('listEdit.basicAuthPass') %>"
+                autocomplete="off">
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">
+            <%= t('listEdit.sourcesConsidered') %>
+            <span class="text-secondary"><%= t('listEdit.sourcesHint') %></span>
+          </label>
+          <div class="row g-1">
+            <% sources.forEach(src => { %>
+              <div class="col-6 col-md-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="sourceIds" id="src<%= src.id %>"
+                    value="<%= src.id %>" <%= linkedSourceIds.includes(src.id) ? 'checked' : '' %>>
+                  <label class="form-check-label" for="src<%= src.id %>"><%= src.name %></label>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card bg-body-tertiary mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <i class="bi bi-arrow-left-right"></i>
+          <span class="text-uppercase text-secondary"><%= t('listEdit.replacements') %></span>
+          <span class="badge bg-info-subtle text-info-emphasis ms-2">
+            <i class="bi bi-info-circle"></i> <%= t('listEdit.replacementsHint') %>
+          </span>
+          <div class="text-secondary mt-1"><%= t('listEdit.replacementsOrder') %></div>
+        </div>
+        <button type="button" class="btn btn-primary" id="add-replacement">
+          <i class="bi bi-plus-lg"></i> <%= t('listEdit.newReplacement') %>
+        </button>
+      </div>
+      <div class="card-body" id="replacements-container">
+        <div class="text-secondary" id="replacements-empty-hint"><%= t('listEdit.noReplacementsHint') %></div>
+      </div>
+    </div>
+
+    <div class="card bg-body-tertiary mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <i class="bi bi-collection"></i>
+          <span class="text-uppercase text-secondary"><%= t('listEdit.ruleGroups') %></span>
+          <span class="badge bg-info-subtle text-info-emphasis ms-2">
+            <i class="bi bi-info-circle"></i> <%= t('common.info') %>
+          </span>
+          <div class="text-secondary mt-1"><%= t('listEdit.rulesEvalOrder') %></div>
+        </div>
+        <button type="button" class="btn btn-primary" id="add-group">
+          <i class="bi bi-plus-lg"></i> <%= t('listEdit.newGroup') %>
+        </button>
+      </div>
+      <div class="card-body" id="groups-container">
+        <div class="text-secondary" id="empty-hint"><%= t('listEdit.noGroupsHint') %></div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 sticky-bottom py-3 app-sticky-actions">
+      <a href="/lists" class="btn btn-outline-secondary"><%= t('common.cancel') %></a>
+      <button type="submit" class="btn btn-success" id="save-btn">
+        <span class="btn-label"><i class="bi bi-save"></i> <%= t('common.saveChanges') %></span>
+        <span class="btn-loading d-none">
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          <%= t('common.saving') %>
+        </span>
+      </button>
+    </div>
+  </form>
+
+  <template id="tpl-group">
+    <div class="group-card border rounded mb-3 p-3" data-group>
+      <div class="row g-2 mb-2 align-items-center">
+        <div class="col-auto">
+          <span class="badge bg-secondary group-pos">#</span>
+        </div>
+        <div class="col-12 col-md-3">
+          <select class="form-select" data-field="action">
+            <option value="include"><%= t('listEdit.actionInclude') %></option>
+            <option value="exclude"><%= t('listEdit.actionExclude') %></option>
+          </select>
+        </div>
+        <div class="col-12 col-md-2">
+          <select class="form-select" data-field="combinator">
+            <option value="OR"><%= t('listEdit.combOr') %></option>
+            <option value="AND"><%= t('listEdit.combAnd') %></option>
+          </select>
+        </div>
+        <div class="col-12 col-md-3" data-group-name-wrap>
+          <div class="input-group">
+            <span class="input-group-text" title="<%= t('listEdit.groupNameTitle') %>"><i class="bi bi-tag"></i></span>
+            <input type="text" class="form-control" data-field="group_name"
+              placeholder="<%= t('listEdit.groupNamePlaceholder') %>">
+          </div>
+        </div>
+        <div class="col-12 col-md-2" data-quality-wrap title="<%= t('listEdit.appendQualityHint') %>">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" data-field="append_quality">
+            <label class="form-check-label" data-quality-label><%= t('listEdit.appendQuality') %></label>
+          </div>
+        </div>
+        <div class="col-12 col-md-auto ms-md-auto">
+          <div class="btn-group">
+            <button type="button" class="btn btn-outline-secondary" data-action="up"
+              title="<%= t('common.moveUp') %>"><i class="bi bi-arrow-up"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-action="down"
+              title="<%= t('common.moveDown') %>"><i class="bi bi-arrow-down"></i></button>
+            <button type="button" class="btn btn-outline-danger" data-action="delete-group"
+              title="<%= t('listEdit.deleteGroup') %>"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+      </div>
+      <div data-rules></div>
+      <button type="button" class="btn btn-outline-primary" data-action="add-rule">
+        <i class="bi bi-plus-lg"></i> <%= t('listEdit.addRule') %>
+      </button>
+    </div>
+  </template>
+
+  <template id="tpl-rule">
+    <div class="row g-2 mb-2 align-items-center" data-rule>
+      <div class="col-12 col-md-3">
+        <select class="form-select" data-field="field">
+          <% FIELDS.forEach(f => { %><option value="<%= f %>"><%= f %></option><% }) %>
+        </select>
+      </div>
+      <div class="col-12 col-md-2">
+        <select class="form-select" data-field="operator">
+          <% OPERATORS.forEach(o => { %><option value="<%= o %>"><%= o %></option><% }) %>
+        </select>
+      </div>
+      <div class="col-10 col-md-6">
+        <input class="form-control" data-field="value" placeholder="<%= t('listEdit.valuePlaceholder') %>"
+          title="<%= t('common.info') %>">
+      </div>
+      <div class="col-2 col-md-1 text-end">
+        <button type="button" class="btn btn-outline-danger" data-action="delete-rule"
+          title="<%= t('listEdit.deleteRule') %>"><i class="bi bi-x"></i></button>
+      </div>
+    </div>
+  </template>
+
+  <template id="tpl-replacement">
+    <div class="row g-2 mb-2 align-items-center" data-replacement>
+      <div class="col-12 col-md-2">
+        <select class="form-select" data-field="field">
+          <% FIELDS.forEach(f => { %><option value="<%= f %>"><%= f %></option><% }) %>
+        </select>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="input-group">
+          <span class="input-group-text" title="<%= t('listEdit.replacementFind') %>"><i class="bi bi-search"></i></span>
+          <input class="form-control" data-field="find" placeholder="<%= t('listEdit.replacementFindPlaceholder') %>">
+        </div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div class="input-group">
+          <span class="input-group-text" title="<%= t('listEdit.replacementReplace') %>"><i class="bi bi-arrow-right"></i></span>
+          <input class="form-control" data-field="replace" placeholder="<%= t('listEdit.replacementReplacePlaceholder') %>">
+        </div>
+      </div>
+      <div class="col-8 col-md-1">
+        <div class="form-check" title="<%= t('listEdit.replacementRegexHint') %>">
+          <input class="form-check-input" type="checkbox" data-field="is_regex">
+          <label class="form-check-label" data-regex-label><%= t('listEdit.replacementRegex') %></label>
+        </div>
+      </div>
+      <div class="col-4 col-md-1 text-end">
+        <button type="button" class="btn btn-outline-danger" data-action="delete-replacement"
+          title="<%= t('listEdit.deleteReplacement') %>"><i class="bi bi-x"></i></button>
+      </div>
+    </div>
+  </template>
+
+  <template id="initial-state"><%= JSON.stringify(groups.map(g => ({
+    action: g.action,
+    combinator: g.combinator,
+    group_name: g.group_name || g.override_group_title || '',
+    append_quality: g.append_quality ? 1 : 0,
+    rules: g.rules.map(r => ({ field: r.field, operator: r.operator, value: r.value })),
+  }))) %></template>
+
+  <template id="initial-replacements"><%= JSON.stringify((replacements || []).map(r => ({
+    field: r.field,
+    find: r.find,
+    replace: r.replace,
+    is_regex: r.is_regex ? 1 : 0,
+  }))) %></template>
+
+  <template id="i18n-data"><%= JSON.stringify({
+    confirmDeleteGroup: t('listEdit.confirmDeleteGroup'),
+    confirmDeleteReplacement: t('listEdit.confirmDeleteReplacement'),
+  }) %></template>
+
+  <%- include('partials/footer') %>

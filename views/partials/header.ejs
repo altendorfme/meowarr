@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="<%= lang %>" data-bs-theme="dark">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>
+    <%= typeof title !=='undefined' ? title : t('app.name') %>
+  </title>
+  <link rel="icon" type="image/svg+xml" href="/static/dist/favicon.svg">
+  <link rel="stylesheet" href="<%= assets.appCss %>">
+</head>
+<body<% if (typeof pageId !=='undefined' && pageId) { %> data-page="<%= pageId %>"<% } %>
+      <% if (typeof bodyData !=='undefined' && bodyData) { Object.keys(bodyData).forEach(function(k) { %> data-<%= k %>
+          ="<%= bodyData[k] %>"<% }) } %>>
+              <nav class="navbar navbar-expand-md bg-body-tertiary border-bottom">
+                <div class="container">
+                  <a class="navbar-brand fw-bold fs-4 text-warning d-flex align-items-center gap-2" href="/">
+                    <img src="/static/dist/favicon.svg" alt="" width="28" height="28">
+                    <span><%= t('app.name') %></span>
+                  </a>
+                  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+                    <span class="navbar-toggler-icon"></span>
+                  </button>
+                  <div class="collapse navbar-collapse" id="nav">
+                    <ul class="navbar-nav me-auto">
+                      <li class="nav-item"><a class="nav-link" href="/lists"><i class="bi bi-funnel"></i>
+                          <%= t('nav.lists') %>
+                        </a></li>
+                      <li class="nav-item"><a class="nav-link" href="/images"><i class="bi bi-images"></i>
+                          <%= t('nav.images') %>
+                        </a></li>
+                      <li class="nav-item"><a class="nav-link" href="/sources"><i class="bi bi-hdd-network"></i>
+                          <%= t('nav.sources') %>
+                        </a></li>
+                      <li class="nav-item"><a class="nav-link" href="/epgs"><i class="bi bi-calendar3"></i>
+                          <%= t('nav.epg') %>
+                        </a></li>
+                    </ul>
+                    <form method="post" action="/lang" class="d-flex d-md-inline me-md-2" data-no-loading="1">
+                      <input type="hidden" name="back"
+                        value="<%= typeof currentUrl !== 'undefined' ? currentUrl : '/' %>">
+                      <select name="lang" class="form-select" data-submit-on-change>
+                        <% langs.forEach(l=> { %>
+                          <option value="<%= l %>" <%=l===lang ? 'selected' : '' %>><%= langNames[l] %>
+                          </option>
+                          <% }) %>
+                      </select>
+                    </form>
+                    <form method="post" action="/logout" class="d-flex d-md-inline mt-2 mt-md-0">
+                      <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-box-arrow-right"></i>
+                        <%= t('common.logout') %>
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </nav>
+              <%- include('job_banner') %>
+              <main class="container mt-4 pb-5">

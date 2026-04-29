@@ -1,0 +1,122 @@
+<%- include('partials/header', { title: t('lists.title') + ' - ' + t('app.name'), pageId: 'lists' }) %>
+  <div class="d-block d-md-flex align-items-center justify-content-between mb-3">
+    <h4 class="mb-2 mb-md-0"><i class="bi bi-funnel"></i>
+      <%= t('lists.title') %>
+    </h4>
+    <div class="d-flex gap-2">
+      <form method="post" action="/lists/regen-all" class="d-inline" data-no-loading="1"
+            data-job data-confirm="<%= t('lists.confirmRegenAll') %>">
+        <button class="btn btn-outline-warning" data-job-action><i class="bi bi-arrow-clockwise"></i>
+          <%= t('lists.regenAll') %>
+        </button>
+      </form>
+      <a href="/lists/new" class="btn btn-primary"><i class="bi bi-plus-lg"></i>
+        <%= t('lists.newList') %>
+      </a>
+    </div>
+  </div>
+  <% if (regenerated) { %>
+    <div class="alert alert-success py-2"><i class="bi bi-check-circle"></i>
+      <%= t('lists.regenDone') %>
+    </div>
+    <% } %>
+
+      <div class="alert alert-info py-2">
+        <i class="bi bi-info-circle"></i>
+        <%= t('lists.info') %>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-dark table-striped align-middle">
+          <thead>
+            <tr>
+              <th></th>
+              <th>
+                <%= t('common.name') %>
+              </th>
+              <th>
+                <%= t('common.slug') %>
+              </th>
+              <th>
+                <%= t('lists.epg') %>
+              </th>
+              <th>
+                <%= t('lists.publicUrls') %>
+              </th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% lists.forEach(l=> { %>
+              <tr>
+                <td class="text-secondary">
+                  <%= l.id %>
+                </td>
+                <td>
+                  <%= l.name %>
+                    <% if (l.description) { %><br><span class="text-secondary">
+                        <%= l.description %>
+                      </span>
+                      <% } %>
+                </td>
+                <td><code><%= l.slug %></code></td>
+                <td>
+                  <% if (l.epg_name) { %><span class="badge bg-info-subtle text-info-emphasis">
+                      <%= l.epg_name %>
+                    </span>
+                    <% } else { %><span class="text-secondary">
+                        <%= t('common.none_dash') %>
+                      </span>
+                      <% } %>
+                </td>
+                <td>
+                  <div><a href="/lists/<%= l.slug %>/m3u8" target="_blank">/lists/<%= l.slug %>/m3u8</a></div>
+                  <div>
+                    <span class="text-secondary">
+                      <%= t('lists.hdhrLabel') %>
+                    </span>
+                    <a href="/lists/<%= l.slug %>/hdhr" target="_blank">/lists/<%= l.slug %>/hdhr</a>
+                    <% if (l.epg_id) { %>
+                      <div>- <span class="text-secondary">
+                          <%= t('lists.hdhrGuideLabel') %>
+                        </span>
+                        <a href="/lists/<%= l.slug %>/guide.xml" target="_blank">/lists/<%= l.slug %>/guide.xml</a>
+                      </div>
+                      <% } else { %>
+                        <div class="small text-warning mt-1"> <i class="bi bi-exclamation-triangle"></i>
+                          <%= t('lists.hdhrNoEpg') %>
+                            <% } %>
+                        </div>
+                        <% if (l.basic_auth_user) { %>
+                          <div class="text-warning"><i class="bi bi-shield-lock"></i>
+                            <%= t('lists.protected') %> (<code><%= l.basic_auth_user %>:••••</code>)
+                          </div>
+                          <% } %>
+                </td>
+                <td class="text-end">
+                  <div class="d-flex gap-2 align-items-center justify-content-end">
+                    <a href="/lists/<%= l.id %>/channels" class="btn btn-outline-info"
+                      title="<%= t('lists.viewChannels') %>"><i class="bi bi-list-ul"></i></a>
+                    <a href="/lists/<%= l.id %>/edit" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                    <form method="post" action="/lists/<%= l.id %>/regen" class="d-inline" data-no-loading="1"
+                      data-job><button
+                        class="btn btn-outline-warning" data-job-action title="<%= t('lists.regenOne') %>"><i
+                          class="bi bi-arrow-clockwise"></i></button></form>
+                    <form method="post" action="/lists/<%= l.id %>/delete" class="d-inline"
+                      data-confirm="<%= t('lists.confirmDelete') %>"><button class="btn btn-outline-danger"><i
+                          class="bi bi-trash"></i></button></form>
+                  </div>
+                </td>
+              </tr>
+              <% }) %>
+                <% if (lists.length===0) { %>
+                  <tr>
+                    <td colspan="7" class="text-secondary text-center py-3">
+                      <%= t('lists.none') %>
+                    </td>
+                  </tr>
+                  <% } %>
+          </tbody>
+        </table>
+      </div>
+      <%- include('partials/footer') %>

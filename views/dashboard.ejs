@@ -1,0 +1,290 @@
+<%- include('partials/header', { title: t('dashboard.title') + ' - ' + t('app.name') }) %>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card bg-body-tertiary h-100">
+      <div class="card-body">
+        <h6 class="text-secondary text-uppercase mb-1"><i class="bi bi-funnel"></i> <%= t('dashboard.lists') %></h6>
+        <div class="display-6"><%= (lists.length || 0).toLocaleString(lang) %></div>
+        <a href="/lists" class="btn btn-outline-primary btn-sm"><%= t('dashboard.manage') %></a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card bg-body-tertiary h-100">
+      <div class="card-body">
+        <h6 class="text-secondary text-uppercase mb-1"><i class="bi bi-hdd-network"></i> <%= t('dashboard.sources') %></h6>
+        <div class="display-6"><%= (sources.length || 0).toLocaleString(lang) %></div>
+        <a href="/sources" class="btn btn-outline-primary btn-sm"><%= t('dashboard.manage') %></a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card bg-body-tertiary h-100">
+      <div class="card-body">
+        <h6 class="text-secondary text-uppercase mb-1"><i class="bi bi-calendar3"></i> <%= t('dashboard.epg') %></h6>
+        <div class="display-6"><%= (epgs.length || 0).toLocaleString(lang) %></div>
+        <a href="/epgs" class="btn btn-outline-primary btn-sm"><%= t('dashboard.manage') %></a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h4 class="mt-4 mb-2"><i class="bi bi-broadcast-pin"></i> <%= t('dashboard.howToUse') %></h4>
+<div class="alert alert-info py-2">
+  <i class="bi bi-info-circle"></i> <%= t('dashboard.howToUseInfo') %>
+  <span class="text-secondary ms-1"><%= t('dashboard.copyHint') %></span>
+</div>
+
+<% if (lists.length === 0) { %>
+  <div class="card bg-body-tertiary mb-4">
+    <div class="card-body text-center py-4">
+      <h5 class="mb-2"><i class="bi bi-funnel"></i> <%= t('dashboard.noListsTitle') %></h5>
+      <p class="text-secondary mb-3"><%= t('dashboard.noListsHint') %></p>
+      <a href="/lists/new" class="btn btn-primary"><i class="bi bi-plus-lg"></i> <%= t('dashboard.createFirstList') %></a>
+    </div>
+  </div>
+<% } else { %>
+
+<ul class="nav nav-tabs mb-3" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-iptv" type="button" role="tab">
+      <i class="bi bi-phone"></i> <%= t('dashboard.tabIptv') %>
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-plex" type="button" role="tab">
+      <i class="bi bi-play-btn"></i> <%= t('dashboard.tabPlex') %>
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-jellyfin" type="button" role="tab">
+      <i class="bi bi-collection-play"></i> <%= t('dashboard.tabJellyfin') %>
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-player" type="button" role="tab">
+      <i class="bi bi-cone-striped"></i> <%= t('dashboard.tabPlayer') %>
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content mb-4">
+
+  <%# IPTV apps %>
+  <div class="tab-pane fade show active" id="tab-iptv" role="tabpanel">
+    <p class="text-secondary mb-2"><%= t('dashboard.iptvIntro') %></p>
+    <ol class="text-secondary small ps-3 mb-3">
+      <li><%= t('dashboard.iptvStep1') %></li>
+      <li><%= t('dashboard.iptvStep2') %></li>
+      <li><%= t('dashboard.iptvStep3') %></li>
+      <li><%= t('dashboard.iptvStep4') %></li>
+    </ol>
+    <% lists.forEach(l => {
+      const m3u8 = `${baseUrl}/lists/${l.slug}/m3u8`;
+      const epgUrl = l.epg_slug ? `${baseUrl}/epg/${l.epg_slug}.xml` : null;
+    %>
+      <div class="card bg-body-tertiary mb-3">
+        <div class="card-body py-3">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <strong><i class="bi bi-funnel"></i> <%= l.name %></strong>
+            <code><%= l.slug %></code>
+            <% if (l.basic_auth_user) { %>
+              <span class="badge bg-warning"><i class="bi bi-shield-lock"></i> <%= t('lists.protected') %></span>
+            <% } %>
+            <% if (!l.epg_slug) { %>
+              <span class="badge bg-secondary"><%= t('dashboard.noEpg') %></span>
+            <% } %>
+          </div>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="form-label mb-1"><%= t('dashboard.m3u8Url') %></label>
+              <input type="text" class="form-control form-control-sm js-copy-url app-url-cell" readonly value="<%= m3u8 %>">
+            </div>
+            <% if (epgUrl) { %>
+              <div class="col-md-6">
+                <label class="form-label mb-1"><%= t('dashboard.epgUrl') %></label>
+                <input type="text" class="form-control form-control-sm js-copy-url app-url-cell" readonly value="<%= epgUrl %>">
+              </div>
+            <% } %>
+          </div>
+          <% if (l.basic_auth_user) { %>
+            <div class="row g-2 mt-1">
+              <div class="col-md-6">
+                <label class="form-label mb-1"><%= t('dashboard.user') %></label>
+                <input type="text" class="form-control form-control-sm" readonly value="<%= l.basic_auth_user %>">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label mb-1"><%= t('dashboard.pass') %></label>
+                <input type="text" class="form-control form-control-sm" readonly value="<%= l.basic_auth_password || '' %>">
+              </div>
+              <div class="col-12"><small class="text-warning"><i class="bi bi-shield-lock"></i> <%= t('dashboard.protectedHint') %></small></div>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <%# Plex %>
+  <div class="tab-pane fade" id="tab-plex" role="tabpanel">
+    <p class="text-secondary mb-2"><%= t('dashboard.plexIntro') %></p>
+    <ol class="text-secondary small ps-3 mb-3">
+      <li><%= t('dashboard.plexStep1') %></li>
+      <li><%= t('dashboard.plexStep2') %></li>
+      <li><%= t('dashboard.plexStep3') %></li>
+      <li><%= t('dashboard.plexStep4') %></li>
+    </ol>
+    <% lists.forEach(l => {
+      const hdhr = `${baseUrl}/lists/${l.slug}/hdhr`;
+      const guide = l.epg_slug ? `${baseUrl}/lists/${l.slug}/guide.xml` : null;
+    %>
+      <div class="card bg-body-tertiary mb-3">
+        <div class="card-body py-3">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <strong><i class="bi bi-funnel"></i> <%= l.name %></strong>
+            <code><%= l.slug %></code>
+            <% if (l.basic_auth_user) { %>
+              <span class="badge bg-danger"><i class="bi bi-shield-lock"></i> <%= t('lists.protected') %></span>
+            <% } %>
+          </div>
+          <% if (l.basic_auth_user) { %>
+            <div class="alert alert-warning py-2 mb-2 small"><i class="bi bi-exclamation-triangle"></i> <%= t('dashboard.plexAuthWarning') %></div>
+          <% } %>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="form-label mb-1"><%= t('dashboard.hdhrUrl') %></label>
+              <input type="text" class="form-control form-control-sm js-copy-url app-url-cell" readonly value="<%= hdhr %>">
+            </div>
+            <% if (guide) { %>
+              <div class="col-md-6">
+                <label class="form-label mb-1"><%= t('dashboard.guideUrl') %></label>
+                <input type="text" class="form-control form-control-sm js-copy-url app-url-cell" readonly value="<%= guide %>">
+              </div>
+            <% } else { %>
+              <div class="col-md-6">
+                <div class="alert alert-warning py-2 mb-0 small h-100"><i class="bi bi-exclamation-triangle"></i> <%= t('dashboard.plexNoEpgWarning') %></div>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <%# Jellyfin %>
+  <div class="tab-pane fade" id="tab-jellyfin" role="tabpanel">
+    <p class="text-secondary mb-2"><%= t('dashboard.jellyfinIntro') %></p>
+    <ol class="text-secondary small ps-3 mb-3">
+      <li><%= t('dashboard.jellyfinStep1') %></li>
+      <li><%= t('dashboard.jellyfinStep2') %></li>
+      <li><%= t('dashboard.jellyfinStep3') %></li>
+      <li><%= t('dashboard.jellyfinStep4') %></li>
+      <li><%= t('dashboard.jellyfinStep5') %></li>
+    </ol>
+    <% lists.forEach(l => {
+      const hdhr = `${baseUrl}/lists/${l.slug}/hdhr`;
+      const guide = l.epg_slug ? `${baseUrl}/lists/${l.slug}/guide.xml` : null;
+      const epgUrl = l.epg_slug ? `${baseUrl}/epg/${l.epg_slug}.xml` : null;
+    %>
+      <div class="card bg-body-tertiary mb-3">
+        <div class="card-body py-3">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <strong><i class="bi bi-funnel"></i> <%= l.name %></strong>
+            <code><%= l.slug %></code>
+            <% if (l.basic_auth_user) { %>
+              <span class="badge bg-danger"><i class="bi bi-shield-lock"></i> <%= t('lists.protected') %></span>
+            <% } %>
+            <% if (!l.epg_slug) { %>
+              <span class="badge bg-secondary"><%= t('dashboard.noEpg') %></span>
+            <% } %>
+          </div>
+          <% if (l.basic_auth_user) { %>
+            <div class="alert alert-warning py-2 mb-2 small"><i class="bi bi-exclamation-triangle"></i> <%= t('dashboard.plexAuthWarning') %></div>
+          <% } %>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="form-label mb-1"><%= t('dashboard.hdhrUrl') %></label>
+              <input type="text" class="form-control form-control-sm js-copy-url app-url-cell" readonly value="<%= hdhr %>">
+            </div>
+            <% if (guide) { %>
+              <div class="col-md-6">
+                <label class="form-label mb-1"><%= t('dashboard.guideUrl') %></label>
+                <input type="text" class="form-control form-control-sm js-copy-url app-url-cell" readonly value="<%= guide %>">
+              </div>
+            <% } else if (epgUrl) { %>
+              <div class="col-md-6">
+                <label class="form-label mb-1"><%= t('dashboard.epgUrl') %></label>
+                <input type="text" class="form-control form-control-sm js-copy-url app-url-cell" readonly value="<%= epgUrl %>">
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+  <%# VLC / players %>
+  <div class="tab-pane fade" id="tab-player" role="tabpanel">
+    <p class="text-secondary mb-2"><%= t('dashboard.playerIntro') %></p>
+    <ol class="text-secondary small ps-3 mb-3">
+      <li><%= t('dashboard.playerStep1') %></li>
+      <li><%= t('dashboard.playerStep2') %></li>
+      <li><%= t('dashboard.playerStep3') %></li>
+      <li><%= t('dashboard.playerStep4') %></li>
+    </ol>
+    <% lists.forEach(l => {
+      const m3u8 = `${baseUrl}/lists/${l.slug}/m3u8`;
+      const epgUrl = l.epg_slug ? `${baseUrl}/epg/${l.epg_slug}.xml` : null;
+    %>
+      <div class="card bg-body-tertiary mb-3">
+        <div class="card-body py-3">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <strong><i class="bi bi-funnel"></i> <%= l.name %></strong>
+            <code><%= l.slug %></code>
+            <% if (l.basic_auth_user) { %>
+              <span class="badge bg-warning"><i class="bi bi-shield-lock"></i> <%= t('lists.protected') %></span>
+            <% } %>
+            <a href="/lists/<%= l.id %>/channels" class="btn btn-outline-info btn-sm ms-auto">
+              <i class="bi bi-list-ul"></i> <%= t('dashboard.playerOpenChannels') %>
+            </a>
+          </div>
+          <div class="row g-2">
+            <div class="col-md-6">
+              <label class="form-label mb-1"><%= t('dashboard.m3u8Url') %></label>
+              <input type="text" class="form-control form-control-sm js-copy-url app-url-cell" readonly value="<%= m3u8 %>">
+            </div>
+            <% if (epgUrl) { %>
+              <div class="col-md-6">
+                <label class="form-label mb-1"><%= t('dashboard.epgUrl') %></label>
+                <input type="text" class="form-control form-control-sm js-copy-url app-url-cell" readonly value="<%= epgUrl %>">
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% }) %>
+  </div>
+
+</div>
+<% } %>
+
+<h5 class="mt-4"><i class="bi bi-hdd-network"></i> <%= t('dashboard.sourcesStatus') %></h5>
+<div class="table-responsive">
+<table class="table table-dark table-striped align-middle">
+<thead><tr><th><%= t('common.name') %></th><th><%= t('common.type') %></th><th><%= t('common.lastSync') %></th><th><%= t('common.status') %></th><th><%= t('dashboard.channels') %></th></tr></thead>
+<tbody>
+<% sources.forEach(s => { %>
+<tr>
+  <td><%= s.name %></td>
+  <td><span class="badge bg-secondary"><%= s.kind %></span></td>
+  <td class="text-secondary"><%= s.last_sync_at || t('common.none_dash') %></td>
+  <td><%- include('partials/status_badge', { status: s.last_status }) %></td>
+  <td><%= (s.channel_count || 0).toLocaleString(lang) %></td>
+</tr>
+<% }) %>
+<% if (sources.length === 0) { %><tr><td colspan="5" class="text-secondary text-center py-3"><%= t('dashboard.noSources') %> <a href="/sources"><%= t('dashboard.add') %></a>.</td></tr><% } %>
+</tbody>
+</table>
+</div>
+<%- include('partials/footer') %>

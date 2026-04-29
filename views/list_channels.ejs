@@ -1,0 +1,206 @@
+<%- include('partials/header', { title: t('channels.titleList', { name: list.name }) + ' - ' + t('app.name'), pageId: 'list-channels' }) %>
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h4 class="mb-0"><i class="bi bi-list-ul"></i>
+      <%= t('channels.channelsOf') %> <span class="text-primary">
+          <%= list.name %>
+        </span>
+    </h4>
+    <div class="d-flex flex-wrap gap-2">
+      <button type="button" class="btn btn-outline-warning" id="url-test-btn"
+        data-job-action data-job-client-trigger
+        title="<%= t('channels.testBtnHint') %>">
+        <i class="bi bi-shield-check"></i> <%= t('channels.testBtn') %>
+      </button>
+      <a href="/lists/<%= list.id %>/edit" class="btn btn-outline-primary"><i class="bi bi-pencil"></i>
+        <%= t('common.edit') %>
+      </a>
+      <a href="/lists/<%= list.slug %>/m3u8" target="_blank" class="btn btn-outline-info"><i
+          class="bi bi-link-45deg"></i> m3u8</a>
+      <a href="/lists/<%= list.slug %>/hdhr" target="_blank" class="btn btn-outline-info" title="HDHR"><i
+          class="bi bi-broadcast-pin"></i> HDHR</a>
+      <a href="/lists" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>
+        <%= t('common.back') %>
+      </a>
+    </div>
+  </div>
+
+  <div class="alert alert-info py-2">
+    <i class="bi bi-info-circle"></i> <%= t('channels.infoList') %>
+  </div>
+
+  <% if (brokenTotal > 0) { %>
+    <div class="alert alert-warning py-2 d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span class="flex-grow-1">
+        <%= brokenTotal.toLocaleString(lang) %>
+        <%= brokenTotal === 1 ? t('channels.brokenOne') : t('channels.brokenMany') %>
+      </span>
+    </div>
+  <% } %>
+
+  <form method="get" class="row g-2 mb-3" data-no-loading="1">
+    <div class="col-12">
+      <div class="btn-group" role="group">
+        <input type="radio" class="btn-check" name="filter" value="all" id="f-all"
+          <%= filter === 'all' ? 'checked' : '' %> data-submit-on-change>
+        <label class="btn btn-outline-secondary" for="f-all"><%= t('channels.filterAll') %></label>
+        <input type="radio" class="btn-check" name="filter" value="live" id="f-live"
+          <%= filter === 'live' ? 'checked' : '' %> data-submit-on-change>
+        <label class="btn btn-outline-success" for="f-live">
+          <i class="bi bi-check2-circle"></i> <%= t('channels.filterLive') %>
+        </label>
+        <input type="radio" class="btn-check" name="filter" value="broken" id="f-broken"
+          <%= filter === 'broken' ? 'checked' : '' %> data-submit-on-change>
+        <label class="btn btn-outline-danger" for="f-broken">
+          <i class="bi bi-exclamation-triangle"></i> <%= t('channels.filterBroken') %>
+        </label>
+      </div>
+    </div>
+    <div class="col-12 d-flex gap-2">
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" name="q" value="<%= q %>" class="form-control"
+          placeholder="<%= t('channels.searchPlaceholder') %>">
+      </div>
+
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-collection"></i></span>
+        <select name="group" class="form-select">
+          <option value="">
+            <%= t('channels.allGroups') %> (<%= groups.reduce((a,g)=>a+g.uses,0).toLocaleString(lang) %>)
+          </option>
+          <% groups.forEach(g=> { %>
+            <option value="<%= g.group_title %>" <%=group===g.group_title ? 'selected' : '' %>>
+              <%= g.group_title || t('channels.noGroup') %> (<%= g.uses.toLocaleString(lang) %>)
+            </option>
+            <% }) %>
+        </select>
+      </div>
+
+      <button class="btn btn-primary">
+        <%= t('common.search') %>
+      </button>
+      <% if (q || group || filter !== 'all') { %><a href="/lists/<%= list.id %>/channels" class="btn btn-outline-secondary">
+          <%= t('common.clear') %>
+        </a>
+        <% } %>
+    </div>
+    <div class="col-12 text-md-end">
+      <span class="text-secondary">
+        <%= total.toLocaleString(lang) %>
+          <%= t('common.results') %> · <%= t('common.page') %>
+              <%= page %>
+                <%= t('common.pageOf') %>
+                  <%= totalPages %> · <%= perPage %>
+                      <%= t('common.perPage') %>
+      </span>
+    </div>
+  </form>
+
+  <%- include('partials/pagination', { page, totalPages, q, extraParams: { group, filter }, navClass: 'mb-3' }) %>
+
+    <div class="table-responsive">
+      <table class="table table-dark table-striped align-middle">
+        <thead>
+          <tr>
+            <th class="app-thumb-col"><%= t('channels.tvgLogo') %></th>
+            <th><%= t('channels.status') %></th>
+            <th>
+              <%= t('channels.group') %>
+            </th>
+            <th>
+              <%= t('channels.tvgName') %>
+            </th>
+            <th>
+              <%= t('channels.displayName') %>
+            </th>
+            <th>
+              <%= t('channels.tvgId') %>
+            </th>
+            <th>
+              <%= t('common.url') %>
+            </th>
+            <th class="text-end"><%= t('common.actions') %></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% channels.forEach(c=> { %>
+            <tr class="js-channel-row <%= c.broken ? 'table-danger' : '' %>" data-url="<%= c.url %>">
+              <td class="app-thumb-col">
+                <% if (c.tvg_logo) { %>
+                  <img src="<%= c.tvg_logo %>" alt="" class="app-thumb-xs" loading="lazy"
+                    referrerpolicy="no-referrer" data-onerror-broken>
+                <% } else { %>
+                  <span class="app-thumb-xs app-thumb-empty"><i class="bi bi-image"></i></span>
+                <% } %>
+              </td>
+              <td>
+                <span class="js-status-cell">
+                  <% if (c.broken) { %>
+                    <span class="badge bg-danger" title="<%= t('channels.broken') %><%= c.checked_at ? ' · ' + t('channels.checkedAt') + ' ' + c.checked_at : '' %>">
+                      <i class="bi bi-exclamation-triangle"></i>
+                    </span>
+                  <% } else if (c.checked_at) { %>
+                    <span class="badge bg-success-subtle text-success-emphasis" title="<%= t('channels.live') %> · <%= t('channels.checkedAt') %> <%= c.checked_at %>">
+                      <i class="bi bi-check2-circle"></i>
+                    </span>
+                  <% } else { %>
+                    <span class="badge bg-secondary">-</span>
+                  <% } %>
+                </span>
+              </td>
+              <td>
+                <%= c.group_title || t('common.none_dash') %>
+              </td>
+              <td>
+                <%= c.tvg_name || t('common.none_dash') %>
+              </td>
+              <td>
+                <%= c.display_name || t('common.none_dash') %>
+              </td>
+              <td class="text-secondary">
+                <%= c.tvg_id || t('common.none_dash') %>
+              </td>
+              <td>
+                <input type="text" class="form-control app-url-cell js-copy-url" readonly
+                  spellcheck="false" value="<%= c.url %>">
+              </td>
+              <td class="text-end">
+                <button type="button" class="btn btn-sm js-toggle-broken <%= c.broken ? 'btn-outline-success' : 'btn-outline-danger' %>"
+                  title="<%= c.broken ? t('channels.reactivate') : t('channels.markBroken') %>">
+                  <% if (c.broken) { %>
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                  <% } else { %>
+                    <i class="bi bi-x-circle"></i>
+                  <% } %>
+                </button>
+              </td>
+            </tr>
+            <% }) %>
+              <% if (channels.length===0) { %>
+                <tr>
+                  <td colspan="8" class="text-secondary text-center py-3">
+                    <%= (q || group || filter !== 'all') ? t('channels.none') : t('channels.noneList') %>
+                  </td>
+                </tr>
+                <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    <%- include('partials/pagination', { page, totalPages, q, extraParams: { group, filter }, navClass: 'mt-3' }) %>
+
+  <template id="i18n-data"><%= JSON.stringify({
+    listId: list.id,
+    listName: list.name,
+    broken: t('channels.broken'),
+    live: t('channels.live'),
+    markBroken: t('channels.markBroken'),
+    reactivate: t('channels.reactivate'),
+    testJobLabel: t('jobs.testListUrls', { name: list.name }),
+    testFailLoad: t('channels.testFailLoad'),
+    testNone: t('channels.testNone'),
+    testDone: t('channels.testDone'),
+  }) %></template>
+
+  <%- include('partials/footer') %>

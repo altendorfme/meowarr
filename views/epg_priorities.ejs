@@ -1,0 +1,137 @@
+<%- include('partials/header', { title: t('epgPriorities.title', { name: epg.name }) + ' - ' + t('app.name'), pageId: 'epg-priorities', bodyData: { 'epg-id': epg.id } }) %>
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <h4 class="mb-0"><i class="bi bi-funnel"></i>
+      <%= t('epgPriorities.title', { name: epg.name }) %>
+    </h4>
+    <a href="/epgs" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> <%= t('common.back') %></a>
+  </div>
+
+  <div class="alert alert-info py-2">
+    <i class="bi bi-info-circle"></i> <%= t('epgPriorities.info') %>
+    <br><%= t('epgPriorities.indexed') %>:
+    <strong><%= channelCount.toLocaleString(lang) %></strong> <%= t('epgPriorities.channels') %>.
+  </div>
+
+  <% if (saved) { %>
+    <div class="alert alert-success py-2"><i class="bi bi-check-circle"></i> <%= t('epgPriorities.saved') %></div>
+  <% } %>
+  <% if (error) { %>
+    <div class="alert alert-danger py-2"><i class="bi bi-exclamation-triangle"></i> <%= error %></div>
+  <% } %>
+
+  <form method="post" action="/epgs/<%= epg.id %>/priorities" id="pri-form">
+    <input type="hidden" name="priorities_json" id="priorities_json">
+
+    <div class="card bg-body-tertiary mb-3">
+      <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <i class="bi bi-collection"></i>
+          <span class="text-uppercase text-secondary"><%= t('epgPriorities.priorities') %></span>
+          <span class="badge bg-info-subtle text-info-emphasis ms-2">
+            <i class="bi bi-info-circle"></i> <%= t('common.info') %>
+          </span>
+        </div>
+        <button type="button" class="btn btn-primary" id="add-priority">
+          <i class="bi bi-plus-lg"></i> <%= t('epgPriorities.newPriority') %>
+        </button>
+      </div>
+      <div class="card-body" id="priorities-container">
+        <div class="text-secondary" id="empty-hint"><%= t('epgPriorities.noneHint') %></div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 sticky-bottom py-3 app-sticky-actions">
+      <a href="/epgs" class="btn btn-outline-secondary"><%= t('common.cancel') %></a>
+      <button type="submit" class="btn btn-success" id="save-btn">
+        <span class="btn-label"><i class="bi bi-save"></i> <%= t('epgPriorities.saveBtn') %></span>
+        <span class="btn-loading d-none">
+          <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+          <%= t('common.saving') %>
+        </span>
+      </button>
+    </div>
+  </form>
+
+  <datalist id="epg-channels-datalist"></datalist>
+
+  <template id="tpl-priority">
+    <div class="group-card border rounded mb-3 p-3" data-priority>
+      <div class="row g-2 mb-2 align-items-center">
+        <div class="col-auto">
+          <span class="badge bg-secondary pri-pos">#</span>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="input-group">
+            <span class="input-group-text" title="<%= t('epgPriorities.tvgIdTitle') %>">
+              tvg-id
+            </span>
+            <input type="text" class="form-control" data-field="tvg_id" list="epg-channels-datalist"
+              placeholder="<%= t('epgPriorities.tvgIdPlaceholder') %>" required>
+          </div>
+        </div>
+        <div class="col-12 col-md-3">
+          <div class="input-group" title="<%= t('epgPriorities.displayNameTitle') %>">
+            <span class="input-group-text"><i class="bi bi-tag"></i></span>
+            <input type="text" class="form-control" data-field="display_name"
+              placeholder="<%= t('epgPriorities.displayNamePlaceholder') %>">
+          </div>
+        </div>
+        <div class="col-12 col-md-2">
+          <select class="form-select" data-field="combinator" title="<%= t('epgPriorities.combTitle') %>">
+            <option value="AND"><%= t('epgPriorities.combAnd') %></option>
+            <option value="OR"><%= t('epgPriorities.combOr') %></option>
+          </select>
+        </div>
+        <div class="col-12 col-md-auto ms-md-auto">
+          <div class="btn-group">
+            <button type="button" class="btn btn-outline-secondary" data-action="up"
+              title="<%= t('common.moveUp') %>"><i class="bi bi-arrow-up"></i></button>
+            <button type="button" class="btn btn-outline-secondary" data-action="down"
+              title="<%= t('common.moveDown') %>"><i class="bi bi-arrow-down"></i></button>
+            <button type="button" class="btn btn-outline-danger" data-action="delete-priority"
+              title="<%= t('epgPriorities.deletePriority') %>"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+      </div>
+      <div data-rules></div>
+      <button type="button" class="btn btn-outline-primary" data-action="add-rule">
+        <i class="bi bi-plus-lg"></i> <%= t('epgPriorities.addRule') %>
+      </button>
+    </div>
+  </template>
+
+  <template id="tpl-rule">
+    <div class="row g-2 mb-2 align-items-center" data-rule>
+      <div class="col-12 col-md-3">
+        <select class="form-select" data-field="field">
+          <% FIELDS.forEach(f => { %><option value="<%= f %>"><%= f %></option><% }) %>
+        </select>
+      </div>
+      <div class="col-12 col-md-2">
+        <select class="form-select" data-field="operator">
+          <% OPERATORS.forEach(o => { %><option value="<%= o %>"><%= o %></option><% }) %>
+        </select>
+      </div>
+      <div class="col-10 col-md-6">
+        <input class="form-control" data-field="value"
+          placeholder="<%= t('epgPriorities.valuePlaceholder') %>">
+      </div>
+      <div class="col-2 col-md-1 text-end">
+        <button type="button" class="btn btn-outline-danger" data-action="delete-rule"
+          title="<%= t('common.delete') %>"><i class="bi bi-x"></i></button>
+      </div>
+    </div>
+  </template>
+
+  <template id="initial-state"><%= JSON.stringify(priorities.map(p => ({
+    tvg_id: p.tvg_id,
+    display_name: p.display_name || '',
+    combinator: p.combinator,
+    rules: (p.rules || []).map(r => ({ field: r.field, operator: r.operator, value: r.value })),
+  }))) %></template>
+
+  <template id="i18n-data"><%= JSON.stringify({
+    confirmDeletePriority: t('epgPriorities.confirmDeletePriority'),
+  }) %></template>
+
+  <%- include('partials/footer') %>

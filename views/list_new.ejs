@@ -1,0 +1,42 @@
+<%- include('partials/header', { title: t('listNew.title') + ' - ' + t('app.name') }) %>
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h4 class="mb-0"><i class="bi bi-funnel"></i>
+      <%= t('listNew.title') %>
+    </h4>
+    <a href="/lists" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i>
+      <%= t('common.back') %>
+    </a>
+  </div>
+
+  <% if (error) { %>
+    <div class="alert alert-danger">
+      <%= error %>
+    </div>
+    <% } %>
+
+      <form method="post" action="/lists" class="card bg-body-tertiary app-form-narrow">
+        <div class="card-body row g-2">
+          <div class="col-md-6"><label class="form-label">
+              <%= t('common.name') %>
+            </label><input name="name" class="form-control" value="<%= values.name || '' %>" required autofocus></div>
+          <div class="col-md-6"><label class="form-label">
+              <%= t('common.slug') %>
+            </label><input name="slug" class="form-control" value="<%= values.slug || '' %>"
+              placeholder="<%= t('listNew.slugPlaceholder') %>"></div>
+          <div class="col-12"><label class="form-label">
+              <%= t('common.description') %>
+            </label><input name="description" class="form-control" value="<%= values.description || '' %>"></div>
+          <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary">
+              <span class="btn-label"><i class="bi bi-plus-lg"></i>
+                <%= t('common.createAndEdit') %>
+              </span>
+              <span class="btn-loading d-none"><span class="spinner-border spinner-border-sm me-1" role="status"
+                  aria-hidden="true"></span>
+                <%= t('common.saving') %>
+              </span>
+            </button>
+          </div>
+        </div>
+      </form>
+      <%- include('partials/footer') %>

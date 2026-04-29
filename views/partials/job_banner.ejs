@@ -1,0 +1,38 @@
+<div id="job-banner" class="app-job-banner d-none" data-i18n='<%= JSON.stringify({
+    running: t("jobs.running"),
+    cancelling: t("jobs.cancelling"),
+    done: t("jobs.done"),
+    failed: t("jobs.failed"),
+    cancelled: t("jobs.cancelled"),
+    cancel: t("jobs.cancel"),
+    confirmCancel: t("jobs.confirmCancel"),
+    busyTooltip: t("jobs.busyTooltip"),
+    ok: t("jobs.ok"),
+    broken: t("jobs.broken"),
+    stepFilter: t("jobs.stepFilter"),
+    stepPersist: t("jobs.stepPersist"),
+    stepWrite: t("jobs.stepWrite"),
+    stepFetch: t("jobs.stepFetch"),
+    stepParse: t("jobs.stepParse"),
+    stepIndex: t("jobs.stepIndex"),
+    stepCheckImages: t("jobs.stepCheckImages"),
+    stepCheckUrls: t("jobs.stepCheckUrls")
+  }) %>'>
+  <div class="app-job-banner-body">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <i class="bi bi-arrow-repeat app-spin" data-job-banner-spinner></i>
+      <strong data-job-banner-label></strong>
+      <span class="badge bg-info-subtle text-info-emphasis" data-job-banner-status></span>
+      <span class="text-secondary small text-truncate app-job-banner-current" data-job-banner-current></span>
+      <span class="ms-auto small text-secondary"><span data-job-banner-done>0</span> / <span data-job-banner-total>…</span></span>
+      <button type="button" class="btn btn-sm btn-outline-danger" data-job-banner-cancel>
+        <i class="bi bi-x-circle"></i> <span data-job-banner-cancel-label></span>
+      </button>
+    </div>
+    <div class="progress app-progress mt-2" style="height:.5rem;">
+      <div class="progress-bar progress-bar-striped progress-bar-animated"
+        data-job-banner-bar style="width:0%"></div>
+    </div>
+    <div class="small text-secondary mt-1 text-truncate d-none" data-job-banner-substep></div>
+  </div>
+</div>

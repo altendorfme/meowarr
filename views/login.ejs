@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="<%= lang %>" data-bs-theme="dark">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>
+    <%= t('login.title') %> - <%= t('app.name') %>
+  </title>
+  <link rel="icon" type="image/svg+xml" href="/static/dist/favicon.svg">
+  <link rel="stylesheet" href="<%= assets.appCss %>">
+</head>
+
+<body class="d-flex align-items-center app-login-body">
+  <div class="container app-login-wrap">
+    <div class="text-center mb-4">
+      <img src="/static/dist/favicon.svg" alt="" width="64" height="64">
+      <h1 class="fs-3 text-warning fw-bold mt-2"><%= t('app.name') %></h1>
+    </div>
+    <% if (error) { %>
+      <div class="alert alert-danger py-2">
+        <%= error %>
+      </div>
+      <% } %>
+        <form method="post" action="/login" class="card card-body bg-body-tertiary">
+          <input type="hidden" name="returnTo" value="<%= typeof returnTo !== 'undefined' ? returnTo : '' %>">
+          <label class="form-label">
+            <%= t('login.password') %>
+          </label>
+          <input type="password" name="password" class="form-control mb-3" autofocus required>
+          <button class="btn btn-primary"><i class="bi bi-box-arrow-in-right"></i>
+            <%= t('login.enter') %>
+          </button>
+        </form>
+        <form method="post" action="/lang" class="text-center mt-3" data-no-loading="1">
+          <select name="lang" class="form-select d-inline-block w-auto" data-submit-on-change>
+            <% langs.forEach(l=> { %>
+              <option value="<%= l %>" <%=l===lang ? 'selected' : '' %>><%= langNames[l] %>
+              </option>
+              <% }) %>
+          </select>
+        </form>
+  </div>
+  <script src="<%= assets.appJs %>"></script>
+</body>
+
+</html>

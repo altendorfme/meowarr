@@ -1,0 +1,160 @@
+<%- include('partials/header', { title: t('sources.title') + ' - ' + t('app.name'), pageId: 'sources' }) %>
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h4 class="mb-0"><i class="bi bi-hdd-network"></i>
+      <%= t('sources.title') %>
+    </h4>
+    <form method="post" action="/sources/sync-all" data-no-loading="1" data-job>
+      <button class="btn btn-outline-primary" data-job-action><i class="bi bi-arrow-clockwise"></i>
+        <%= t('common.syncAll') %>
+      </button>
+    </form>
+  </div>
+
+  <div class="alert alert-info py-2">
+    <i class="bi bi-info-circle"></i> <%= t('sources.info') %>
+  </div>
+
+  <div class="card bg-body-tertiary mb-4">
+    <div class="card-header text-uppercase text-secondary">
+      <%= t('sources.newSource') %>
+    </div>
+    <form method="post" action="/sources" class="card-body row g-2">
+      <div class="col-md-3">
+        <label class="form-label">
+          <%= t('common.name') %>
+        </label>
+        <input name="name" class="form-control" required>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">
+          <%= t('common.type') %>
+        </label>
+        <select name="kind" class="form-select">
+          <option value="url">
+            <%= t('sources.kindUrl') %>
+          </option>
+          <option value="git">
+            <%= t('sources.kindGit') %>
+          </option>
+        </select>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label">
+          <%= t('sources.location') %>
+        </label>
+        <input name="location" class="form-control" placeholder="https://..." required>
+      </div>
+      <div class="col-md-1 d-flex align-items-end">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="enabled" id="enabled" checked>
+          <label class="form-check-label" for="enabled">
+            <%= t('common.enabled') %>
+          </label>
+        </div>
+      </div>
+      <div class="col-md-1 d-flex align-items-end">
+        <button class="btn btn-primary w-100"><i class="bi bi-plus-lg"></i></button>
+      </div>
+    </form>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-dark table-striped align-middle">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>
+            <%= t('common.name') %>
+          </th>
+          <th>
+            <%= t('common.type') %>
+          </th>
+          <th>
+            <%= t('sources.origin') %>
+          </th>
+          <th>
+            <%= t('sources.channels') %>
+          </th>
+          <th>
+            <%= t('common.lastSync') %>
+          </th>
+          <th>
+            <%= t('common.status') %>
+          </th>
+          <th>
+            <%= t('common.enabled') %>
+          </th>
+          <th class="text-end">
+            <%= t('common.actions') %>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <% sources.forEach(s => { %>
+          <tr>
+            <td class="text-secondary">
+              <%= s.id %>
+            </td>
+            <td>
+              <%= s.name %>
+            </td>
+            <td><span class="badge bg-secondary">
+                <%= s.kind %>
+              </span></td>
+            <td>
+              <input type="text" class="form-control app-url-cell js-copy-url" readonly
+                spellcheck="false" value="<%= s.location %>">
+            </td>
+            <td>
+              <%= (s.channel_count || 0).toLocaleString(lang) %>
+            </td>
+            <td class="text-secondary">
+              <%= s.last_sync_at || t('common.none_dash') %>
+            </td>
+            <td>
+              <%- include('partials/status_badge', { status: s.last_status }) %>
+              <% if (s.last_error) { %><br><span class="text-danger">
+                  <%= s.last_error %>
+                </span>
+              <% } %>
+            </td>
+            <td>
+              <% if (s.enabled) { %><span class="badge bg-success">
+                  <%= t('common.yes') %>
+                </span>
+                <% } else { %><span class="badge bg-secondary">
+                    <%= t('common.no') %>
+                  </span>
+                  <% } %>
+            </td>
+            <td class="text-end">
+              <div class="d-flex gap-2 align-items-center justify-content-end">
+              <form method="post" action="/sources/<%= s.id %>/sync" class="d-inline" data-no-loading="1"
+                data-job><button
+                  class="btn btn-outline-primary" data-job-action title="<%= t('common.sync') %>"><i
+                    class="bi bi-arrow-clockwise"></i></button></form>
+              <a href="/sources/<%= s.id %>/edit" class="btn btn-outline-primary"
+                title="<%= t('common.edit') %>"><i class="bi bi-pencil"></i></a>
+              <a href="/sources/<%= s.id %>/channels" class="btn btn-outline-info"
+                title="<%= t('sources.viewChannels') %>"><i class="bi bi-list-ul"></i></a>
+              <form method="post" action="/sources/<%= s.id %>/toggle" class="d-inline"><button
+                  class="btn btn-outline-warning" title="<%= t('sources.toggle') %>"><i
+                    class="bi bi-toggle2-on"></i></button></form>
+              <form method="post" action="/sources/<%= s.id %>/delete" class="d-inline"
+                data-confirm="<%= t('sources.confirmDelete') %>"><button class="btn btn-outline-danger"
+                  title="<%= t('common.delete') %>"><i class="bi bi-trash"></i></button></form>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+            <% if (sources.length===0) { %>
+              <tr>
+                <td colspan="9" class="text-secondary text-center py-3">
+                  <%= t('sources.none') %>
+                </td>
+              </tr>
+              <% } %>
+      </tbody>
+    </table>
+  </div>
+  <%- include('partials/footer') %>

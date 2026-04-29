@@ -1,0 +1,13 @@
+services:
+  meowarr:
+    image: ghcr.io/altendorfme/meowarr:latest
+    container_name: meowarr
+    ports:
+      - "9797:9797"
+    environment:
+      TZ: ${TZ:-UTC}
+      ADMIN_PASSWORD: change-this
+      SESSION_SECRET: change-this-with-at-least-32-random-characters
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
