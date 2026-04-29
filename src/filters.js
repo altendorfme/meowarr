@@ -126,7 +126,9 @@ async function buildListResolution(listId, onProgress, signal) {
   checkAbort(signal);
   const brokenUrls = loadBrokenUrlSet();
   const live = brokenUrls.size ? r.channels.filter(c => !brokenUrls.has(c.url)) : r.channels;
-  return { list: r.list, live, count: live.length, channels: r.channels };
+  const result = { list: r.list, live, count: live.length, channels: r.channels };
+  r.channels = null;
+  return result;
 }
 
 async function rewriteListM3UFromCompiled(listId, onProgress) {
@@ -336,19 +338,24 @@ async function writeListCache(listId, onStep, signal) {
     if (!result) return null;
     checkAbort(signal);
     const file = cacheFileForSlug(result.list.slug);
+    const slug = result.list.slug;
+    const count = result.count;
     step('write', 0, result.live.length);
     await streamM3UToFile(result.live, file, { onChunk: async (d, t) => {
       checkAbort(signal);
       step('write', d, t);
       await tick();
     } });
+    if (result.live !== result.channels) result.live = null;
     checkAbort(signal);
     step('persist', 0, result.channels.length);
     await persistCompiledChannels(listId, result.channels, (d, t) => step('persist', d, t), signal);
-    removeListGuideCache(result.list.slug);
-    removeListLineupCache(result.list.slug);
+    result.channels = null;
+    result.live = null;
+    removeListGuideCache(slug);
+    removeListLineupCache(slug);
     buildListGuideXml(listId).catch(err => logger.error({ err, listId }, 'guide xml build failed'));
-    return { file, count: result.count, slug: result.list.slug };
+    return { file, count, slug };
   });
 }
 
@@ -389,6 +396,9 @@ async function regenerateAllListCaches(reporter, signal) {
     }
     results.push(r);
     if (reporter) reporter.setProgress(i + 1, total);
+    if (typeof global.gc === 'function') {
+      try { global.gc(); } catch (_) { /* noop */ }
+    }
     await tick();
   }
   if (reporter) reporter.setSummary({ ok: okCount, failed: failCount });

@@ -33,7 +33,8 @@ WORKDIR /app
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=9797 \
-    DATA_DIR=/app/data
+    DATA_DIR=/app/data \
+    NODE_OPTIONS=--max-old-space-size=4096
 
 COPY --chown=app:app --from=builder /app/node_modules ./node_modules
 COPY --chown=app:app --from=builder /app/public/dist ./public/dist

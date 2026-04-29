@@ -92,6 +92,7 @@ function handleResolve(msg) {
   const result = [];
   for (let i = 0; i < total; i++) {
     const replaced = applyReplacements(raw[i], compiled);
+    raw[i] = null;
     if (groups.length === 0) {
       result.push(applyTransform(replaced, normOpts, epgLookup, null, imageOverrides, brokenSet));
     } else {
@@ -107,6 +108,7 @@ function handleResolve(msg) {
       parentPort.postMessage({ type: 'progress', jobId, done: i + 1, total });
     }
   }
+  raw.length = 0;
   parentPort.postMessage({ type: 'progress', jobId, done: total, total });
   parentPort.postMessage({ type: 'done', jobId, channels: result });
 }
